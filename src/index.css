@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg: #FAF7F2;
+    --color-surface: #FFFFFF;
+    --color-surface-muted: #F3EEE5;
+    --color-border: #E5DDD0;
+    --color-primary: #14213D;
+    --color-primary-light: #24355A;
+    --color-text-main: #14213D;
+    --color-text-muted: #64748B;
+    --color-accent: #E0A030;
+    --color-accent-hover: #C98A20;
+    --color-available: #4F8F6B;
+    --color-available-bg: #EAF4EE;
+    --color-limited: #D9822B;
+    --color-limited-bg: #FDF3E7;
+    --color-unavailable: #C2493D;
+    --color-unavailable-bg: #FBEBE9;
+  }
+
+  .dark {
+    --color-bg: #0C1322;
+    --color-surface: #142036;
+    --color-surface-muted: #1B2944;
+    --color-border: #263859;
+    --color-primary: #EAE6DF;
+    --color-primary-light: #C5BFB5;
+    --color-text-main: #F3F1EC;
+    --color-text-muted: #94A3B8;
+    --color-accent: #F2B245;
+    --color-accent-hover: #FFC45E;
+    --color-available: #5FB488;
+    --color-available-bg: #132E22;
+    --color-limited: #F0A04B;
+    --color-limited-bg: #352310;
+    --color-unavailable: #E55D50;
+    --color-unavailable-bg: #331513;
+  }
+
+  body {
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+    transition: background-color 0.25s ease, color 0.25s ease;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, .font-serif-academic {
+    font-family: 'Fraunces', Georgia, Cambria, serif;
+    font-feature-settings: 'cv01' on, 'cv02' on;
+  }
+}
+
+.font-mono-code {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}

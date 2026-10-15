@@ -1,0 +1,6 @@
+{
+  "name": "BiblioSphere - Smart Library Book Availability Portal",
+  "description": "Real-time college library catalog search, instant availability checker, shelf locator, student reservation system, and librarian inventory manager.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
