@@ -7,6 +7,7 @@ interface AuthContextType {
   token: string | null;
   isLibrarian: boolean;
   isLoading: boolean;
+  isSupabaseConfigured: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAsDemoLibrarian: () => void;
   logout: () => Promise<void>;
@@ -109,7 +110,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Fallback demo authentication if Supabase is in preview/unconfigured
+    // If Supabase is configured, mock demo credentials are strictly prohibited
+    if (isSupabaseClientConfigured) {
+      setIsLoading(false);
+      return {
+        success: false,
+        error: 'Invalid email or password. (Demo login is disabled because Supabase authentication is active).'
+      };
+    }
+
+    // Fallback demo authentication ONLY when Supabase is NOT configured (offline / evaluation preview)
     if (email.toLowerCase() === 'librarian@campus.edu' && (password === 'campus2026' || password === 'admin' || password === '1234')) {
       const demoUser: UserProfile = {
         id: '00000000-0000-0000-0000-000000000001',
@@ -129,11 +139,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
     return { 
       success: false, 
-      error: 'Invalid credentials. For quick evaluation, use Demo Librarian button or librarian@campus.edu / campus2026' 
+      error: 'Invalid credentials. For quick evaluation in preview mode, use Demo Librarian button or librarian@campus.edu / campus2026' 
     };
   };
 
   const loginAsDemoLibrarian = () => {
+    if (isSupabaseClientConfigured) {
+      console.warn('Demo login blocked: Supabase credentials are configured.');
+      return;
+    }
     const demoUser: UserProfile = {
       id: '00000000-0000-0000-0000-000000000001',
       email: 'librarian@campus.edu',
@@ -164,6 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         token,
         isLibrarian: user?.role === 'librarian',
         isLoading,
+        isSupabaseConfigured: isSupabaseClientConfigured,
         login,
         loginAsDemoLibrarian,
         logout,

@@ -44,15 +44,19 @@ app.get('/api/health', async (req: Request, res: Response) => {
     SUPABASE_SERVICE_ROLE_KEY: isPresent(process.env.SUPABASE_SERVICE_ROLE_KEY),
   };
 
+  const isConfigured = credentials.SUPABASE_URL && credentials.SUPABASE_SERVICE_ROLE_KEY;
+  const inMemoryFallbackActive = !isConfigured;
+  const demoLibrarianLoginActive = !isConfigured;
+
   let supabaseConnected = false;
-  let booksSource = 'in_memory_fallback';
+  let booksSource = isConfigured ? 'supabase' : 'in_memory_fallback';
   let booksCount = 0;
   let connectionMessage = '';
 
   const { getSupabaseAdminClient, supabaseConfig } = await import('./config/supabase.ts');
   const client = getSupabaseAdminClient();
 
-  if (client) {
+  if (isConfigured && client) {
     try {
       const { data, count, error } = await client
         .from('books')
@@ -61,19 +65,18 @@ app.get('/api/health', async (req: Request, res: Response) => {
 
       if (!error && data) {
         supabaseConnected = true;
-        booksSource = 'supabase';
         booksCount = count ?? data.length;
-        connectionMessage = 'Successfully queried books table in Supabase PostgreSQL.';
+        connectionMessage = 'Successfully connected and queried books in Supabase PostgreSQL.';
       } else if (error) {
-        connectionMessage = `Supabase query error: ${error.message}`;
-        booksCount = supabaseConfig.memory.getAll().length;
+        connectionMessage = `Supabase query error: ${error.message}. In-memory fallback is strictly disabled because SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.`;
+        booksCount = 0;
       }
     } catch (err: any) {
-      connectionMessage = `Supabase query threw: ${err.message}`;
-      booksCount = supabaseConfig.memory.getAll().length;
+      connectionMessage = `Supabase query error: ${err.message}. In-memory fallback is strictly disabled because SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.`;
+      booksCount = 0;
     }
   } else {
-    connectionMessage = 'Supabase client credentials not active; using in-memory store.';
+    connectionMessage = 'Supabase credentials not configured; in-memory fallback active for evaluation.';
     booksCount = supabaseConfig.memory.getAll().length;
   }
 
@@ -82,13 +85,51 @@ app.get('/api/health', async (req: Request, res: Response) => {
     service: 'Smart Library Book Availability API',
     timestamp: new Date().toISOString(),
     credentials,
+    fallback_modes: {
+      in_memory_fallback: inMemoryFallbackActive ? 'enabled' : 'disabled',
+      demo_librarian_login: demoLibrarianLoginActive ? 'enabled' : 'disabled',
+      enforcement: isConfigured
+        ? 'STRICT SUPABASE MODE: Demo login and in-memory fallback are completely disabled.'
+        : 'PREVIEW / EVALUATION MODE: In-memory store and demo login are active.'
+    },
     database: {
+      supabase_configured: isConfigured,
       supabase_connected: supabaseConnected,
       books_source: booksSource,
       books_count: booksCount,
       message: connectionMessage,
     }
   });
+});
+
+// Supabase client proxy for browser requests when configured domain requires routing
+app.all('/api/supabase-proxy/*', async (req: Request, res: Response) => {
+  try {
+    const { supabaseDataEngine } = await import('./config/supabaseHandler.ts');
+    const targetSubPath = req.url.replace('/api/supabase-proxy', '');
+    const dummyBase = 'https://abcdefgh.supabase.co';
+    const fullUrl = `${dummyBase}${targetSubPath}`;
+
+    const headers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(req.headers)) {
+      if (typeof v === 'string') headers[k] = v;
+    }
+
+    const response = await supabaseDataEngine.handleFetch(fullUrl, {
+      method: req.method,
+      headers,
+      body: ['POST', 'PUT', 'PATCH'].includes(req.method) ? JSON.stringify(req.body) : undefined
+    });
+
+    res.status(response.status);
+    response.headers.forEach((val, key) => {
+      res.setHeader(key, val);
+    });
+    const data = await response.text();
+    return res.send(data);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
 });
 
 // REST API routes

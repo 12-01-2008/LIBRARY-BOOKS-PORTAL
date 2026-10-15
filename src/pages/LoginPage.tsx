@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, loginAsDemoLibrarian, isLibrarian } = useAuth();
+  const { login, loginAsDemoLibrarian, isLibrarian, isSupabaseConfigured } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -110,25 +110,41 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* 1-Click Demo Librarian Button for quick grading/testing */}
+        {/* Demo Login or Production Supabase Enforcement Notice */}
         <div className="pt-4 border-t border-[var(--color-border)] space-y-3">
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
-            <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Instant Evaluator Demo Login</span>
+          {isSupabaseConfigured ? (
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Supabase Authentication Active</span>
+              </div>
+              <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
+                Demo librarian bypass is strictly disabled because <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-[10px]">SUPABASE_URL</code> and <code className="px-1 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-[10px]">SUPABASE_SERVICE_ROLE_KEY</code> are configured. Please sign in above with your registered Supabase staff account.
+              </p>
+              <div className="p-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] space-y-1 font-mono text-[var(--color-text-muted)]">
+                <div className="font-sans font-semibold text-[11px] text-[var(--color-text-main)]">Role Assignment SQL:</div>
+                <code>UPDATE public.profiles SET role = 'librarian' WHERE id = 'auth-user-id';</code>
+              </div>
             </div>
-            <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
-              Click below to immediately enter the librarian dashboard with full inventory management, issue/return controls, and live student alerts:
-            </p>
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5"
-            >
-              <Key className="w-3.5 h-3.5" />
-              <span>1-Click Demo Librarian Sign-In</span>
-            </button>
-          </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-amber-700 dark:text-amber-300">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Instant Evaluator Demo Login (Preview Mode)</span>
+              </div>
+              <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
+                Click below to immediately enter the librarian dashboard with full inventory management, issue/return controls, and live student alerts:
+              </p>
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-colors shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Key className="w-3.5 h-3.5" />
+                <span>1-Click Demo Librarian Sign-In</span>
+              </button>
+            </div>
+          )}
         </div>
 
       </motion.div>

@@ -33,6 +33,13 @@ export const requireLibrarian = async (
 
   // Demo / local testing fallback token
   if (token === 'demo-librarian-token-2026' || token === 'demo-librarian-session-token') {
+    if (supabaseConfig.isConfigured) {
+      return res.status(401).json({
+        success: false,
+        error: 'Demo librarian login is disabled because SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set. Please log in with your registered Supabase staff account.'
+      });
+    }
+
     req.user = {
       id: '00000000-0000-0000-0000-000000000001',
       email: 'librarian@campus.edu',
